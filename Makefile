@@ -2,5 +2,6 @@ all:
 	cd src; make
 
 clean:
-	cd src; make clean
-	rm bin/CQZXSpectrum
+	cd src; qmake; make clean
+	rm src/Makefile
+	rm -f bin/CQZXSpectrum

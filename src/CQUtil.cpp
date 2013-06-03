@@ -304,5 +304,5 @@ QColor
 CQUtil::
 rgbaToColor(const CRGBA &rgba)
 {
-  return QColor(rgba.r*255, rgba.g*255, rgba.b*255, rgba.a*255);
+  return QColor(rgba.getRed()*255, rgba.getGreen()*255, rgba.getBlue()*255, rgba.getAlpha()*255);
 }
