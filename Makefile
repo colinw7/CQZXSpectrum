@@ -1,5 +1,5 @@
 all:
-	cd src; make
+	cd src; qmake; make
 
 clean:
 	cd src; qmake; make clean
