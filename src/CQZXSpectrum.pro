@@ -40,6 +40,7 @@ unix:LIBS += \
 -L../../CArgs/lib \
 -L../../CFile/lib \
 -L../../CStrUtil/lib \
+-L../../COS/lib \
 -L../../CUtil/lib \
 -lCArgs \
 -lCZ80 \
