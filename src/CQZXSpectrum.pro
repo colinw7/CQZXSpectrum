@@ -1,7 +1,9 @@
 TEMPLATE = app
 
-TARGET = 
+TARGET = CQZXSpectrum
+
 DEPENDPATH += .
+
 INCLUDEPATH += . ../include
 
 CONFIG += debug
