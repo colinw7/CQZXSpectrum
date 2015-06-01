@@ -2,9 +2,13 @@ TEMPLATE = app
 
 TARGET = CQZXSpectrum
 
+QT += widgets
+
 DEPENDPATH += .
 
 INCLUDEPATH += . ../include
+
+QMAKE_CXXFLAGS += -std=c++11
 
 CONFIG += debug
 
