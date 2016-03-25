@@ -1,4 +1,4 @@
-#include "CQZXSpectrum.h"
+#include <CQZXSpectrum.h>
 #include <CZXSpectrum.h>
 
 #include <CArgs.h>
