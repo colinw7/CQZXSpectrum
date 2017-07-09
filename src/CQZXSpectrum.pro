@@ -15,13 +15,14 @@ CONFIG += debug
 # Input
 SOURCES += \
 CQZXSpectrum.cpp \
-CZXSpectrumBasic.cpp \
 CZXSpectrum.cpp \
+CZXSpectrumBasic.cpp \
 CZXSpectrumTZX.cpp \
 CZXSpectrumZ80.cpp \
 
 HEADERS += \
 CQZXSpectrum.h \
+../include/CZXSpectrum.h \
 CZXSpectrumKeyMap.h \
 CZXSpectrumTZX.h \
 CZXSpectrumZ80.h \
@@ -32,8 +33,9 @@ LIB_DIR     = ../lib
 
 INCLUDEPATH += \
 . ../include \
-../../CQUtil/include \
 ../../CZ80/include \
+../../CQZ80Dbg/include \
+../../CQUtil/include \
 ../../CArgs/include \
 ../../CFont/include \
 ../../CImageLib/include \
@@ -45,16 +47,20 @@ INCLUDEPATH += \
 
 unix:LIBS += \
 -L$$LIB_DIR \
+-L../../CZ80/lib \
+-L../../CQZ80Dbg/lib \
 -L../../CQUtil/lib \
 -L../../CFont/lib \
 -L../../CImageLib/lib \
 -L../../CConfig/lib \
 -L../../CArgs/lib \
--L../../CZ80/lib \
+-L../../CFileUtil/lib \
 -L../../CFile/lib \
+-L../../CMath/lib \
 -L../../COS/lib \
 -L../../CStrUtil/lib \
 -L../../CRegExp/lib \
--lCQUtil -lCFont -lCImageLib -lCConfig \
--lCArgs -lCZ80 -lCFile -lCOS -lCStrUtil -lCRegExp \
+-L../../CUtil/lib \
+-lCZ80 -lCQZ80Dbg -lCQUtil -lCFont -lCImageLib -lCConfig \
+-lCArgs -lCFileUtil -lCFile -lCMath -lCUtil -lCOS -lCStrUtil -lCRegExp \
 -lpng -ljpeg -ltre

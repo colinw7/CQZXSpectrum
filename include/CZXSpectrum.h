@@ -1,8 +1,10 @@
 #ifndef CZXSPECTRUM_H
 #define CZXSPECTRUM_H
 
-#include <CRGBA.h>
 #include <CZ80.h>
+#include <CImagePtr.h>
+#include <CIBBox2D.h>
+#include <CRGBA.h>
 
 struct CZXSpectrumPortData;
 
@@ -14,9 +16,9 @@ class CZXSpectrumRenderer {
 
   virtual void setForeground(const CRGBA &fg) = 0;
 
-  virtual void fillRectangle(int x, int y, int w, int h) = 0;
+  virtual void fillRectangle(const CIBBox2D &bbox) = 0;
 
-  virtual void drawPoint(int x, int y) = 0;
+  virtual void drawPoint(const CIPoint2D &p) = 0;
 };
 
 class CZXSpectrum {

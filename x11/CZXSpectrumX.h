@@ -2,6 +2,7 @@
 #define CZXSpectrumX_H
 
 #include <CZXSpectrum.h>
+#include <CZ80Screen.h>
 #include <CZ80.h>
 #include <CXLibPixelRenderer.h>
 #include <CXLib.h>
@@ -17,7 +18,7 @@ class CZXSpectrumXScreen : public CZ80Screen {
 
   virtual ~CZXSpectrumXScreen() { }
 
-  void memChanged(ushort pos, ushort len);
+  void screenMemChanged(ushort pos, ushort len) override;
 
   CZXSpectrum &getSpectrum() const { return spectrum; }
 
@@ -28,31 +29,33 @@ class CZXSpectrumXScreen : public CZ80Screen {
   void drawMhz(double mhz);
 
  private:
-  CZXSpectrum        &spectrum;
-  CXLibPixelRenderer *renderer;
-  int                 scale;
-  int                 border;
-  int                 footer;
+  CZXSpectrum&        spectrum;
+  CXLibPixelRenderer* renderer { nullptr };
+  int                 scale    { 1 };
+  int                 border   { 2 };
+  int                 footer   { 2 };
 };
 
 //---
 
 struct CZXSpectrumEventAdapter : public CXEventAdapter {
-  CZXSpectrumXScreen *screen;
-  CZ80               *z80;
+  CZXSpectrumXScreen *screen { nullptr };
+  CZ80               *z80    { nullptr };
 
   CZXSpectrumEventAdapter(CZXSpectrumXScreen *screen1, CZ80 *z801) :
     CXEventAdapter(KeyPress | KeyRelease | Expose),
     screen(screen1), z80(z801) {
   }
 
-  bool keyPressEvent  (const CKeyEvent &kevent);
-  bool keyReleaseEvent(const CKeyEvent &kevent);
+  bool keyPressEvent  (const CKeyEvent &kevent) override;
+  bool keyReleaseEvent(const CKeyEvent &kevent) override;
 
-  bool exposeEvent();
+  bool exposeEvent() override;
 
-  bool idleEvent();
+  bool idleEvent() override;
 };
+
+//---
 
 struct CZXSpectrumXAtExit : public CAtExit {
   CZXSpectrum *spectrum;
@@ -61,7 +64,7 @@ struct CZXSpectrumXAtExit : public CAtExit {
    spectrum(spectrum1) {
   }
 
-  void operator()() {
+  void operator()()  override{
     spectrum->getZ80()->dumpOpCounts(std::cout);
   }
 };

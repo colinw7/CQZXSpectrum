@@ -1,10 +1,6 @@
-#include "CZXSpectrum.h"
-#include "CZXSpectrumZ80.h"
-#include "CFile.h"
-
-using std::string;
-using std::cerr;
-using std::endl;
+#include <CZXSpectrum.h>
+#include <CZXSpectrumZ80.h>
+#include <CFile.h>
 
 struct CZXSpectrumZ80Header1 {
   uchar  a   , f;
@@ -61,7 +57,7 @@ struct CZXSpectrumZ80Header3 {
 };
 
 CZXSpectrumZ80::
-CZXSpectrumZ80(CZXSpectrum &spectrum, const string &filename) :
+CZXSpectrumZ80(CZXSpectrum &spectrum, const std::string &filename) :
  spectrum_(spectrum), filename_(filename)
 {
 }
@@ -78,7 +74,7 @@ load()
   CFile file(filename_);
 
   if (! file.exists() || ! file.isRegular()) {
-    cerr << "Invalid file " << filename_ << endl;
+    std::cerr << "Invalid file " << filename_ << std::endl;
     return false;
   }
 
@@ -97,7 +93,7 @@ load()
     if (! file.read((uchar *) &header2, 25))
       return false;
 
-    cerr << header2.len << endl;
+    std::cerr << header2.len << std::endl;
 
     if (header2.len == 23)
       load2(file, header1, header2);
@@ -137,7 +133,7 @@ load1(CFile &file, CZXSpectrumZ80Header1 &header)
     while (file.read(&c, 1)) {
       if (c == 0xed) {
         if (! file.read(&c, 1)) {
-          cerr << "Invalid data" << endl;
+          std::cerr << "Invalid data" << std::endl;
           return false;
         }
 
@@ -145,7 +141,7 @@ load1(CFile &file, CZXSpectrumZ80Header1 &header)
           uchar x, y;
 
           if (! file.read(&x, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -153,7 +149,7 @@ load1(CFile &file, CZXSpectrumZ80Header1 &header)
             break;
 
           if (! file.read(&y, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -240,11 +236,11 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
       pos2 = 0x7FFF;
     }
     else {
-      cerr << "Unsupported type:" << int(num) << endl;
+      std::cerr << "Unsupported type:" << int(num) << std::endl;
       return false;
     }
 
-    cerr << "Len " << len << " " << int(num) << endl;
+    std::cerr << "Len " << len << " " << int(num) << std::endl;
 
     uint len1 = 0;
 
@@ -255,7 +251,7 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
 
       if (c == 0xed) {
         if (! file.read(&c, 1)) {
-          cerr << "Invalid data" << endl;
+          std::cerr << "Invalid data" << std::endl;
           return false;
         }
 
@@ -265,7 +261,7 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
           uchar x, y;
 
           if (! file.read(&x, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -275,7 +271,7 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
             break;
 
           if (! file.read(&y, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -286,8 +282,8 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
               memory[pos1 - 0x4000] = y; ++pos1;
             }
             else {
-              cerr << "Invalid memory set 1: " <<
-                      std::hex << pos1 << " " << y << std::dec << endl;
+              std::cerr << "Invalid memory set 1: " << std::hex << pos1 << " " <<
+                           std::hex << int(y) << std::endl;
             }
           }
         }
@@ -297,8 +293,8 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
             memory[pos1 - 0x4000] = c   ; ++pos1;
           }
           else {
-            cerr << "Invalid memory set 2: " <<
-                    std::hex << pos1 << " " << 0xed << " " << c << std::dec << endl;
+            std::cerr << "Invalid memory set 2: " << std::hex << pos1 << " " << 0xed << " " <<
+                         std::hex << int(c) << std::endl;
           }
         }
       }
@@ -307,8 +303,8 @@ load2(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header2 &header1
           memory[pos1 - 0x4000] = c; ++pos1;
         }
         else {
-          cerr << "Invalid memory set 3: " <<
-                  std::hex << pos1 << " " << c << std::dec << endl;
+          std::cerr << "Invalid memory set 3: " << std::hex << pos1 << " " <<
+                       std::hex << int(c) << std::endl;
         }
       }
     }
@@ -380,11 +376,11 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
       pos2 = 0x7FFF;
     }
     else {
-      cerr << "Unsupported type:" << int(num) << endl;
+      std::cerr << "Unsupported type:" << int(num) << std::endl;
       return false;
     }
 
-    cerr << "Len " << len << " " << int(num) << endl;
+    std::cerr << "Len " << len << " " << int(num) << std::endl;
 
     uint len1 = 0;
 
@@ -395,7 +391,7 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
 
       if (c == 0xed) {
         if (! file.read(&c, 1)) {
-          cerr << "Invalid data" << endl;
+          std::cerr << "Invalid data" << std::endl;
           return false;
         }
 
@@ -405,7 +401,7 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
           uchar x, y;
 
           if (! file.read(&x, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -415,7 +411,7 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
             break;
 
           if (! file.read(&y, 1)) {
-            cerr << "Invalid data" << endl;
+            std::cerr << "Invalid data" << std::endl;
             return false;
           }
 
@@ -426,8 +422,8 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
               memory[pos1 - 0x4000] = y; ++pos1;
             }
             else {
-              cerr << "Invalid memory set 1: " <<
-                      std::hex << pos1 << " " << y << std::dec << endl;
+              std::cerr << "Invalid memory set 1: " << std::hex << pos1 << " " <<
+                           std::hex << int(y) << std::endl;
             }
           }
         }
@@ -437,8 +433,8 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
             memory[pos1 - 0x4000] = c   ; ++pos1;
           }
           else {
-            cerr << "Invalid memory set 2: " <<
-                    std::hex << pos1 << " " << 0xed << " " << c << std::dec << endl;
+            std::cerr << "Invalid memory set 2: " << std::hex << pos1 << " " << 0xed << " " <<
+                         std::hex << int(c) << std::endl;
           }
         }
       }
@@ -447,8 +443,8 @@ load3(CFile &file, CZXSpectrumZ80Header1 &header, CZXSpectrumZ80Header3 &header1
           memory[pos1 - 0x4000] = c; ++pos1;
         }
         else {
-          cerr << "Invalid memory set 3: " <<
-                  std::hex << pos1 << " " << c << std::dec << endl;
+          std::cerr << "Invalid memory set 3: " << std::hex << pos1 << " " <<
+                       std::hex << int(c) << std::endl;
         }
       }
     }

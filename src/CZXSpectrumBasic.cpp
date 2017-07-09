@@ -1,4 +1,4 @@
-#include "CZXSpectrum.h"
+#include <CZXSpectrumBasic.h>
 
 using std::cerr;
 using std::endl;

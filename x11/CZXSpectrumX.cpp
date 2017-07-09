@@ -1,5 +1,6 @@
 #include <CZXSpectrumX.h>
 #include <CZXSpectrum.h>
+#include <CZ80SpeedData.h>
 #include <CArgs.h>
 #include <CXMachine.h>
 #include <CXWindow.h>
@@ -16,10 +17,10 @@ class CZXSpectrumSpeedData : public CZ80SpeedData {
    CZ80SpeedData(*screen.getSpectrum().getZ80()), screen_(screen) {
   }
 
-  void output() {
+  void output() override {
     screen_.drawMhz(getMhz());
 
-    screen_.memChanged(16384, 6144);
+    screen_.screenMemChanged(16384, 6144);
   }
 };
 
@@ -29,14 +30,14 @@ class CZXSpectrumXRenderer : public CZXSpectrumRenderer {
    renderer_(renderer) {
   }
 
-  void setForeground(const CRGBA &fg);
+  void setForeground(const CRGBA &fg) override;
 
-  void fillRectangle(const CIBBox2D &bbox);
+  void fillRectangle(const CIBBox2D &bbox) override;
 
-  void drawPoint(const CIPoint2D &p);
+  void drawPoint(const CIPoint2D &p) override;
 
  private:
-  CXLibPixelRenderer *renderer_;
+  CXLibPixelRenderer *renderer_ { nullptr };
 };
 
 int
@@ -133,7 +134,7 @@ main(int argc, char **argv)
 
 void
 CZXSpectrumXScreen::
-memChanged(ushort pos, ushort len)
+screenMemChanged(ushort pos, ushort len)
 {
   CZXSpectrumXRenderer xr(renderer);
 
@@ -148,7 +149,7 @@ redraw()
 
   spectrum.drawBorder(&xr);
 
-  memChanged(16384, 6144);
+  screenMemChanged(16384, 6144);
 }
 
 void

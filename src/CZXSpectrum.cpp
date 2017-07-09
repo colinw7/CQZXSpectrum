@@ -1,11 +1,13 @@
-#include "CZXSpectrum.h"
-#include "CZXSpectrumKeyMap.h"
-#include "CZXSpectrumTZX.h"
-#include "CZXSpectrumZ80.h"
-#include "CStrUtil.h"
+#include <CZXSpectrum.h>
+#include <CZXSpectrumKeyMap.h>
+#include <CZXSpectrumTZX.h>
+#include <CZXSpectrumZ80.h>
+#include <CZ80PortData.h>
+#include <CZ80Screen.h>
+#include <CStrUtil.h>
+#include <CImageLib.h>
 
-#include <cassert>
-#include "roms/spectrum48.h"
+#include <roms/spectrum48.h>
 
 using std::string;
 using std::cerr;
@@ -19,12 +21,12 @@ struct CZXSpectrumPortData : public CZ80PortData {
  public:
   CZXSpectrumPortData(CZXSpectrum &spectrum);
 
-  void out(uchar port, uchar value);
+  void out(uchar port, uchar value) override;
 
-  uchar in(uchar port, uchar qual);
+  uchar in(uchar port, uchar qual) override;
 
-  void keyPress  (CKeyType key_type);
-  void keyRelease(CKeyType key_type);
+  void keyPress  (const CKeyEvent &kevent) override;
+  void keyRelease(const CKeyEvent &kevent) override;
 
   bool processKey(CKeyType type, bool press, uint *row, uint *col);
 };
@@ -35,10 +37,9 @@ CZXSpectrum() :
 {
   z80_.setBytes(spectrum48_data, 0, SPECTRUM48_DATA_LEN);
 
-  //z80_.setMemFlags(0, SPECTRUM48_DATA_LEN, CZ80_MEM_READ_ONLY);
+  //z80_.setMemFlags(0, SPECTRUM48_DATA_LEN, uint(CZ80MemType::READ_ONLY));
 
-  z80_.setMemFlags(DISPLAY_START, ATTR_END - DISPLAY_START + 1,
-                   CZ80_MEM_SCREEN);
+  z80_.setMemFlags(DISPLAY_START, ATTR_END - DISPLAY_START + 1, uint(CZ80MemType::SCREEN));
 
   port_data_ = new CZXSpectrumPortData(*this);
 
@@ -159,7 +160,7 @@ drawBorder(CZXSpectrumRenderer *renderer)
 
 //renderer->fill();
 
-  renderer->fillRectangle(0, 0, w8*scale_ + 2*border_, h8*scale_ + 2*border_);
+  renderer->fillRectangle(CIBBox2D(0, 0, w8*scale_ + 2*border_, h8*scale_ + 2*border_));
 }
 
 void
@@ -176,11 +177,11 @@ draw(CZXSpectrumRenderer *renderer, int footer)
 
 //renderer->fill();
 
-  renderer->fillRectangle(0, 0, w8*scale_ + 2*border_, h8*scale_ + 2*border_ + footer);
+  renderer->fillRectangle(CIBBox2D(0, 0, w8*scale_ + 2*border_, h8*scale_ + 2*border_ + footer));
 
   renderer->setForeground(CRGBA(1,1,1));
 
-  renderer->fillRectangle(border_, border_, w8*scale_, h8*scale_);
+  renderer->fillRectangle(CIBBox2D(border_, border_, border_ + w8*scale_, border_ + h8*scale_));
 
   renderer->setForeground(CRGBA(0,0,0));
 
@@ -311,9 +312,9 @@ drawPoint(CZXSpectrumRenderer *renderer, int x, int y)
   int py = y*scale_ + border_;
 
   if (scale_ == 1)
-    renderer->drawPoint(px, py);
+    renderer->drawPoint(CIPoint2D(px, py));
   else
-    renderer->fillRectangle(px, py, scale_, scale_);
+    renderer->fillRectangle(CIBBox2D(px, py, px + scale_, py + scale_));
 }
 
 //-----------------
@@ -333,7 +334,7 @@ out(uchar port, uchar value)
   if ((port & 0x0001) == 0) {
     spectrum_.setBorderColor(int(value & 0x07));
 
-    spectrum_.getZ80()->getScreen()->memChanged(16384, 1);
+    spectrum_.getZ80()->getScreen()->screenMemChanged(16384, 1);
   }
   else {
     static bool warn;
@@ -372,8 +373,10 @@ in(uchar port, uchar qual)
 
 void
 CZXSpectrumPortData::
-keyPress(CKeyType type)
+keyPress(const CKeyEvent &kevent)
 {
+  CKeyType type = kevent.getType();
+
   uint row, col;
 
   if (! processKey(type, true, &row, &col))
@@ -382,8 +385,10 @@ keyPress(CKeyType type)
 
 void
 CZXSpectrumPortData::
-keyRelease(CKeyType type)
+keyRelease(const CKeyEvent &kevent)
 {
+  CKeyType type = kevent.getType();
+
   uint row, col;
 
   if (! processKey(type, false, &row, &col))

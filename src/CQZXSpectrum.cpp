@@ -1,21 +1,19 @@
 #include <CQZXSpectrum.h>
 #include <CZXSpectrum.h>
+#include <CQZ80Dbg.h>
 
 #include <CArgs.h>
+#include <CQApp.h>
 #include <CQUtil.h>
 
-#include <QApplication>
 #include <QWidget>
 #include <QPainter>
 #include <QTimer>
-#include <QKeyEvent>
 
 int
 main(int argc, char **argv)
 {
-  QApplication app(argc, argv);
-
-  CZXSpectrum *spectrum = new CZXSpectrum;
+  CQApp app(argc, argv);
 
   CArgs cargs("-v:f        (verbose) "
               "-dump:f     (enable dump) "
@@ -25,23 +23,27 @@ main(int argc, char **argv)
               "-z80:f      (input file is z80) "
               "-icount:f   (output instruction counts on exit) "
               "-scale:i=1  (scale factor) "
+              "-debug:f    (debug) "
               );
 
   cargs.parse(&argc, argv);
 
-  bool v_flag        = cargs.getBooleanArg("-v");
-  bool dump_flag     = cargs.getBooleanArg("-dump");
-  bool bin_flag      = cargs.getBooleanArg("-bin");
-  bool snapshot_flag = cargs.getBooleanArg("-snapshot");
-  bool tzx_flag      = cargs.getBooleanArg("-tzx");
-  bool z80_flag      = cargs.getBooleanArg("-z80");
-//bool icount        = cargs.getBooleanArg("-icount");
-  int  scale         = cargs.getIntegerArg("-scale");
+  bool verbose  = cargs.getBooleanArg("-v");
+  bool dump     = cargs.getBooleanArg("-dump");
+  bool bin      = cargs.getBooleanArg("-bin");
+  bool snapshot = cargs.getBooleanArg("-snapshot");
+  bool isTZX    = cargs.getBooleanArg("-tzx");
+  bool isZ80    = cargs.getBooleanArg("-z80");
+//bool icount   = cargs.getBooleanArg("-icount");
+  int  scale    = cargs.getIntegerArg("-scale");
+  bool debug    = cargs.getBooleanArg("-debug");
+
+  CZXSpectrum *spectrum = new CZXSpectrum;
 
   CZ80 *z80 = spectrum->getZ80();
 
-  z80->setVerbose(v_flag);
-  z80->setDump(dump_flag);
+  z80->setVerbose(verbose);
+  z80->setDump(dump);
 
   spectrum->setScale(scale);
 
@@ -56,8 +58,6 @@ main(int argc, char **argv)
 
   //qspectrum->setWindowTitle("ZXSpectrum II Emulator");
 
-  //------
-
   z80->setScreen(qspectrum);
 
   //z80->setSpeedData(new CZXSpectrumSpeedData(*qspectrum));
@@ -65,44 +65,47 @@ main(int argc, char **argv)
   //------
 
   for (int i = 1; i < argc; ++i) {
-    if      (bin_flag)
+    if      (bin)
       z80->loadBin(argv[i]);
-    else if (snapshot_flag)
+    else if (snapshot)
       z80->loadSnapshot(argv[i]);
-    else if (tzx_flag)
+    else if (isTZX)
       spectrum->loadTZX(argv[i]);
-    else if (z80_flag)
+    else if (isZ80)
       spectrum->loadZ80(argv[i]);
     else
       z80->load(argv[i]);
   }
 
-  if (! snapshot_flag && ! z80_flag)
+  if (! snapshot && ! isZ80)
     z80->setPC(0);
 
   qspectrum->show();
 
+  //------
+
+  if (debug)
+    qspectrum->addDebug();
+
+  //------
+
+  if (! debug)
+    qspectrum->exec();
+
   return app.exec();
 }
+
+//------
 
 CQZXSpectrum::
 CQZXSpectrum(CZXSpectrum *spectrum, int w, int h) :
  CZ80Screen(*spectrum->getZ80()), spectrum_(spectrum), border_(0), memChanged_(false)
 {
-  QTimer *itimer = new QTimer;
-  QTimer *stimer = new QTimer;
-
-  connect(itimer, SIGNAL(timeout()), this, SLOT(itimeOut()));
-  connect(stimer, SIGNAL(timeout()), this, SLOT(stimeOut()));
-
   setFocusPolicy(Qt::StrongFocus);
 
   border_ = 4*spectrum->getScale();
 
   resize(w, h);
-
-  itimer->start(1);
-  stimer->start(400);
 }
 
 CQZXSpectrum::
@@ -112,7 +115,41 @@ CQZXSpectrum::
 
 void
 CQZXSpectrum::
-memChanged(ushort start, ushort len)
+exec()
+{
+  itimer_ = new QTimer;
+  stimer_ = new QTimer;
+
+  connect(itimer_, SIGNAL(timeout()), this, SLOT(itimeOut()));
+  connect(stimer_, SIGNAL(timeout()), this, SLOT(stimeOut()));
+
+  itimer_->start(1);
+  stimer_->start(400);
+}
+
+CQZ80Dbg *
+CQZXSpectrum::
+addDebug()
+{
+  if (! dbg_) {
+    dbg_ = new CQZ80Dbg(spectrum_->getZ80());
+
+    dbg_->init();
+
+    QFont fixedFont("Courier New", 16);
+
+    dbg_->setFixedFont(fixedFont);
+  }
+
+  dbg_->show();
+  dbg_->raise();
+
+  return dbg_;
+}
+
+void
+CQZXSpectrum::
+screenMemChanged(ushort start, ushort len)
 {
   if (spectrum_->onScreen(start, len))
     memChanged_ = true;
@@ -150,7 +187,9 @@ void
 CQZXSpectrum::
 keyPressEvent(QKeyEvent *e)
 {
-  CKeyType type = CQUtil::convertKey(e->key(), e->modifiers());
+  CKeyEvent *kevent = CQUtil::convertEvent(e);
+
+  CKeyType type = kevent->getType();
 
   CZ80 *z80 = spectrum_->getZ80();
 
@@ -165,37 +204,34 @@ keyPressEvent(QKeyEvent *e)
   else if (type == CKEY_TYPE_F12)
     exit(0);
   else
-    z80->keyPress(type);
+    z80->keyPress(*kevent);
 
-  for (uint i = 0; i < 1000; ++i)
-    z80->step();
+  doSteps();
 }
 
 void
 CQZXSpectrum::
 keyReleaseEvent(QKeyEvent *e)
 {
-  CKeyType type = CQUtil::convertKey(e->key(), e->modifiers());
+  CKeyEvent *kevent = CQUtil::convertEvent(e);
+
+  CKeyType type = kevent->getType();
 
   if (type >= CKEY_TYPE_F1 && type <= CKEY_TYPE_F12)
     return;
 
   CZ80 *z80 = spectrum_->getZ80();
 
-  z80->keyRelease(type);
+  z80->keyRelease(*kevent);
 
-  for (uint i = 0; i < 1000; ++i)
-    z80->step();
+  doSteps();
 }
 
 void
 CQZXSpectrum::
 itimeOut()
 {
-  CZ80 *z80 = spectrum_->getZ80();
-
-  for (uint i = 0; i < 1000; ++i)
-    z80->step();
+  doSteps();
 }
 
 void
@@ -204,6 +240,16 @@ stimeOut()
 {
   if (memChanged_)
     update();
+}
+
+void
+CQZXSpectrum::
+doSteps()
+{
+  CZ80 *z80 = spectrum_->getZ80();
+
+  for (uint i = 0; i < 1000; ++i)
+    z80->step();
 }
 
 //------------
@@ -217,16 +263,16 @@ setForeground(const CRGBA &fg)
 
 void
 CQZXSpectrumRenderer::
-fillRectangle(int x, int y, int w, int h)
+fillRectangle(const CIBBox2D &bbox)
 {
-  painter_->fillRect(QRect(x, y, w, h), QBrush(CQUtil::rgbaToColor(fg_)));
+  painter_->fillRect(CQUtil::toQRect(bbox), QBrush(CQUtil::rgbaToColor(fg_)));
 }
 
 void
 CQZXSpectrumRenderer::
-drawPoint(int x, int y)
+drawPoint(const CIPoint2D &p)
 {
   painter_->setPen(CQUtil::rgbaToColor(fg_));
 
-  painter_->drawPoint(x, y);
+  painter_->drawPoint(p.getX(), p.getY());
 }

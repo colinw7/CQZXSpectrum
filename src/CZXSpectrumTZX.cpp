@@ -1,6 +1,6 @@
-#include "CZXSpectrum.h"
-#include "CZXSpectrumTZX.h"
-#include "CFile.h"
+#include <CZXSpectrum.h>
+#include <CZXSpectrumTZX.h>
+#include <CFile.h>
 
 using std::string;
 using std::cerr;

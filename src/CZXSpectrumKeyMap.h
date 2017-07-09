@@ -1,4 +1,4 @@
-#include <CKeyType.h>
+#include <CEvent.h>
 
 #if 0
 static int
