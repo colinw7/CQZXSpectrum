@@ -50,6 +50,8 @@ class CQZXSpectrumRenderer : public CZXSpectrumRenderer {
    qspectrum_(qspectrum), painter_(painter) {
   }
 
+  CQZXSpectrum *qspectrum() const { return qspectrum_; }
+
   void setForeground(const CRGBA &fg) override;
 
   void fillRectangle(const CIBBox2D &bbox) override;
