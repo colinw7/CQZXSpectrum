@@ -64,7 +64,7 @@ main(int argc, char **argv)
   bool tzx_flag      = cargs.getBooleanArg("-tzx");
   bool z80_flag      = cargs.getBooleanArg("-z80");
   bool icount        = cargs.getBooleanArg("-icount");
-  int  scale         = cargs.getIntegerArg("-scale");
+  int  scale         = int(cargs.getIntegerArg("-scale"));
 
   CZ80 *z80 = spectrum.getZ80();
 
