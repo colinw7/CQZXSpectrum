@@ -5,6 +5,9 @@
 #include <CArgs.h>
 #include <CQApp.h>
 #include <CQUtil.h>
+#include <CQUtilEvent.h>
+#include <CQUtilGeom.h>
+#include <CQUtilRGBA.h>
 
 #include <QWidget>
 #include <QPainter>
